@@ -6,15 +6,19 @@ from utils.data_contrainer import get_pretrain_dataloader, get_predict_dataloade
 from utils.load_config import get_config
 
 
+def get_model():
+    return
+
 
 
 
 def main():
-    pretrain_datapath = f"data/{get_config('pretrain_datapath')}"
-    predict_datapath = f"data/{get_config('predict_datapath')}"
+    pretrain_datapath = f"data/{get_config('pretrain_data_path')}"
+    predict_datapath = f"data/{get_config('predict_data_path')}"
 
 
-    pretrain_dataloader = get_predict_dataloader(pretrain_datapath, get_config("batch_size"), channel = 0)
+    pretrain_dataloader = get_pretrain_dataloader(pretrain_datapath, get_config("batch_size"), channel = 0)
+
 
 
     predict_dataloader = get_predict_dataloader()

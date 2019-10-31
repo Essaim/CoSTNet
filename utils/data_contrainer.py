@@ -3,18 +3,22 @@ import numpy as np
 import h5py
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import torch
+import random
 
 from utils.load_config import get_config
 
 
 def get_pretrain_dataloader(datapath: str,
                             batch_size: int,
-                            channel: int):
+                            channel: int,
+                            pre_train_len: int):
+    np.random.seed(10)
     data = h5py.File(datapath)['data'][:, channel]
-    return DataLoader(dataset= TensorDataset(data, data),
-                      shuffle= True,
-                      batch_size = batch_size)
-
+    np.random.shuffle(data)
+    split = len(data) * pre_train_len
+    return {'train': DataLoader(dataset=TensorDataset(data[:split], data[:split]), shuffle=True, batch_size=batch_size),
+            'validate': DataLoader(dataset=TensorDataset(data[split:], data[split:]), shuffle=True,
+                                   batch_size=batch_size)}
 
 
 class predict_dataset(Dataset):
