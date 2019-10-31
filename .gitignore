@@ -1,0 +1,10 @@
+# data
+*.pkl
+*.txt
+*.csv
+*.h5
+*.json
+*.npy
+.vscode/
+runs/
+saves/
