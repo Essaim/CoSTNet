@@ -5,10 +5,10 @@ import h5py
 
 
 
-class Model_Pretrain_CNN(nn.Module):
+class Model_Spatio_CNN(nn.Module):
     def __init__(self, filter_num):
 
-        super(Model_Pretrain_CNN, self).__init__()
+        super(Model_Spatio_CNN, self).__init__()
 
         self.encoder = nn.Sequential(nn.Conv2d(1, filter_num[0], (3, 3), stride=1, padding=0),
                                      nn.Conv2d(filter_num[0], filter_num[1], (3, 3), stride=1, padding=0),

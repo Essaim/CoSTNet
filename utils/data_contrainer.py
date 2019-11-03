@@ -8,7 +8,7 @@ import random
 from utils.load_config import get_config
 
 
-def get_pretrain_dataloader(datapath: str,
+def get_spatio_dataloader(datapath: str,
                             batch_size: int,
                             channel: int,
                             pre_train_len: int):
@@ -21,7 +21,7 @@ def get_pretrain_dataloader(datapath: str,
                                    batch_size=batch_size)}
 
 
-class predict_dataset(Dataset):
+class temporal_dataset(Dataset):
     def __init__(self, x, y, key):
         self.x = x
         self.y = y
@@ -39,7 +39,7 @@ class predict_dataset(Dataset):
         return get_config(f"{self.key}_len")
 
 
-def get_predict_dataloader(datapath: str,
+def get_temporal_dataloader(datapath: str,
                            batch_size: int,
                            channel: int,
                            depend_list: list):

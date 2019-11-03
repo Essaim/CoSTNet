@@ -3,10 +3,10 @@ from torch import nn
 import numpy
 
 
-class Model_Predict_LSTM(nn.Module):
+class Model_Temporal_LSTM(nn.Module):
     def __init__(self, encoder, decoder, input_size, output_size ):
 
-        super(Model_Predict_LSTM, self).__init__()
+        super(Model_Temporal_LSTM, self).__init__()
 
         self.encoder = encoder
         self.decoder = decoder

@@ -11,7 +11,7 @@ from utils.util import save_model
 from utils.load_config import get_config
 
 
-def train_pretrain(model: nn.model,
+def train_spatio(model: nn.model,
                    data_loader,
                    loss_func,
                    optimizer,
@@ -78,7 +78,7 @@ def train_pretrain(model: nn.model,
     return model
 
 
-def train_predict(model,
+def train_temporal(model,
                   data_loader,
                   loss_func,
                   optimizer,
