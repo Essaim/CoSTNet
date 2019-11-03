@@ -27,7 +27,7 @@ def main():
                                     optimizer=opt,
                                     num_epochs=get_config("pretrain_epochs"),
                                     tensorboard_folder=get_config("xxx"),
-                                    model_folder=get_config("xxx")
+                                    model_folder=get_config("get_aefolder")
                                     )
     encoder, decoder = pretrain_model.encoder, pretrain_model.decoder
 
