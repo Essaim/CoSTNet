@@ -1,17 +1,15 @@
 import numpy as np
-
 import h5py
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import torch
-import random
 
 from utils.load_config import get_config
 
 
 def get_spatio_dataloader(datapath: str,
-                            batch_size: int,
-                            channel: int,
-                            pre_train_len: int):
+                          batch_size: int,
+                          channel: int,
+                          pre_train_len: int):
     np.random.seed(10)
     data = h5py.File(datapath)['data'][:, channel]
     np.random.shuffle(data)
@@ -22,27 +20,33 @@ def get_spatio_dataloader(datapath: str,
 
 
 class temporal_dataset(Dataset):
-    def __init__(self, x, y, key):
+    def __init__(self, x, y, key, train_len, validate_len, test_len):
         self.x = x
         self.y = y
         self.key = key
+        self.len = {"train_len": train_len - int(train_len * validate_len),
+                    "validate_len": int(train_len * validate_len), "test_len": test_len}
 
     def __getitem__(self, item: int):
         if self.key == 'train':
-            return self.x[:get_config("train_len")], self.y[:get_config("train_len")]
+            return self.x[:self.len["train_len"]], self.y[:self.len["train_len"]]
         elif self.key == 'validate':
-            return self.x[get_config("train_len"): get_config("train_len") + get_config("validate_len")]
+            return self.x[self.len["train_len"]: self.len["train_len"] + self.len["validate_len"]], \
+                   self.y[self.len["train_len"]: self.len["train_len"] + self.len["validate_len"]]
         elif self.key == 'test':
-            return self.x[-get_config("test_len"):]
+            return self.x[-self.len["test_len"]:], self.y[-self.len["test_len"]:]
+        else:
+            raise NotImplementedError()
 
-    def __len__(self):
-        return get_config(f"{self.key}_len")
+
+def __len__(self):
+    return self.len[f"{self.key}_len"]
 
 
 def get_temporal_dataloader(datapath: str,
-                           batch_size: int,
-                           channel: int,
-                           depend_list: list):
+                            batch_size: int,
+                            channel: int,
+                            depend_list: list):
     data = h5py.File(datapath)['data'][:, channel]
 
     X_, Y_ = list(), list()
@@ -55,7 +59,8 @@ def get_temporal_dataloader(datapath: str,
 
     dls = dict()
     for key in ['train', 'validate', 'test']:
-        dataset = predict_dataset(X_, Y_, key)
+        dataset = temporal_dataset(X_, Y_, key, get_config("temporal_train_len"), get_config("temporal_validate_len"),
+                                   get_config("temporal_test_len"))
         dls[key] = DataLoader(dataset=dataset,
                               shuffle=True,
                               batch_size=batch_size)

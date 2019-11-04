@@ -16,7 +16,7 @@ class Model_Temporal_LSTM(nn.Module):
                             batch_first=True)
 
     def forward(self, x):
-        x = self.decoder(x)
+        x = self.encoder(x)
         output, (h_n, c_n) = self.lstm(x)
         return self.decoder(h_n[-1, :, :])
 

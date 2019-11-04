@@ -11,13 +11,13 @@ from utils.util import save_model
 from utils.load_config import get_config
 
 
-def train_spatio(model: nn.model,
-                   data_loader,
-                   loss_func,
-                   optimizer,
-                   num_epochs,
-                   tensorboard_folder: str,
-                   model_folder):
+def train_spatio(model,
+                 data_loader,
+                 loss_func,
+                 optimizer,
+                 num_epochs,
+                 tensorboard_folder: str,
+                 model_folder):
     phases = ['train', 'validate']
     since = time.clock()
 
@@ -39,8 +39,8 @@ def train_spatio(model: nn.model,
                 tqdm_loader = tqdm(data_loader[phase], phase)
 
                 for x, y in tqdm_loader:
-                    x.to(get_config("device"))
-                    y.to(get_config("device"))
+                    # x.to(get_config("device"))
+                    # y.to(get_config("device"))
 
                     with torch.set_grad_enabled(phase == 'train'):
                         y_pred = model(x)
@@ -79,12 +79,12 @@ def train_spatio(model: nn.model,
 
 
 def train_temporal(model,
-                  data_loader,
-                  loss_func,
-                  optimizer,
-                  num_epochs,
-                  tensorboard_folder: str,
-                  model_folder: str):
+                   data_loader,
+                   loss_func,
+                   optimizer,
+                   num_epochs,
+                   tensorboard_folder: str,
+                   model_folder: str):
     phases = ['train', 'validate', 'test']
     since = time.clock()
     writer = SummaryWriter(tensorboard_folder)
