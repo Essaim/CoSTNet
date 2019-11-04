@@ -10,12 +10,12 @@ class Model_Spatio_CNN(nn.Module):
 
         super(Model_Spatio_CNN, self).__init__()
 
-        self.encoder = nn.Sequential(nn.Conv2d(1, filter_num[0], (3, 3), stride=1, padding=0),
-                                     nn.Conv2d(filter_num[0], filter_num[1], (3, 3), stride=1, padding=0),
-                                     nn.Conv2d(filter_num[1], 1, (3, 3), stride=1, padding=0))
-        self.decoder = nn.Sequential(nn.ConvTranspose2d(1, filter_num[1], (3, 3), stride=1, padding=0),
-                                     nn.ConvTranspose2d(filter_num[1], filter_num[0], (3, 3), stride=1, padding=0),
-                                     nn.ConvTranspose2d(filter_num[0], 1, (3, 3), stride=1, padding=0))
+        self.encoder = nn.Sequential(nn.Conv2d(1, filter_num[0], (3, 3), stride=1, padding=1),
+                                     nn.Conv2d(filter_num[0], filter_num[1], (3, 3), stride=1, padding=1),
+                                     nn.Conv2d(filter_num[1], 1, (3, 3), stride=1, padding=1))
+        self.decoder = nn.Sequential(nn.ConvTranspose2d(1, filter_num[1], (3, 3), stride=1, padding=1),
+                                     nn.ConvTranspose2d(filter_num[1], filter_num[0], (3, 3), stride=1, padding=1),
+                                     nn.ConvTranspose2d(filter_num[0], 1, (3, 3), stride=1, padding=1))
 
     def forward(self, x):
         x = self.encoder(x)

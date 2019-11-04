@@ -1,3 +1,5 @@
+import os
+import shutil
 from torch import optim
 
 from utils.data_contrainer import get_spatio_dataloader, get_temporal_dataloader
@@ -34,15 +36,22 @@ def create_opt(par, lr, opt_type, extra_par):
 
 
 def main():
-    print(1111)
 
-    spatio_data_path = f"../data/{get_config('spatio_data_path')}"
-    temporal_data_path = f"../data/{get_config('temporal_data_path')}"
+    model_folder = f"../save/{get_config('model_name')}"
+    tensorboard_folder = f"../run/{get_config('model_name')}"
+
+    shutil.rmtree(model_folder, ignore_errors=True)
+    os.makedirs(model_folder, exist_ok=True)
+    shutil.rmtree(tensorboard_folder, ignore_errors=True)
+    os.makedirs(tensorboard_folder, exist_ok=True)
+
+
 
     loss_func = create_loss(get_config("loss_type"))
-    spatio_dataloader = get_spatio_dataloader(spatio_data_path, get_config("spatio_batch_size"), channel=0,
+    spatio_dataloader = get_spatio_dataloader(f"../data/{get_config('spatio_data_path')}",
+                                              get_config("spatio_batch_size"), channel=0,
                                               pre_train_len=get_config("spatio_train_len"))
-    spatio_model = get_model("spatio")
+    spatio_model = get_model("spatio").to(get_config("device"))
     spatio_opt = create_opt(spatio_model.parameters(), get_config("learning_rate"), get_config("opt_type"),
                             get_config("weight_decay"))
 
@@ -51,27 +60,29 @@ def main():
                                 loss_func=loss_func,
                                 optimizer=spatio_opt,
                                 num_epochs=get_config("spatio_epochs"),
-                                tensorboard_folder=f"../{get_config('tensorboard_folder')}",
-                                model_folder=f"../{get_config('spatio_model_save_folder')}")
+                                tensorboard_folder=tensorboard_folder,
+                                model_folder=model_folder)
 
     encoder, decoder = spatio_model.encoder, spatio_model.decoder
 
     # 添加划分
-    temporal_dataloader = get_temporal_dataloader(temporal_data_path, get_config("temporal_batch_size"), channel=0,
+    temporal_dataloader = get_temporal_dataloader(f"../data/{get_config('temporal_data_path')}",
+                                                  get_config("temporal_batch_size"), channel=0,
                                                   depend_list=get_config("temporal_depend_list"))
     temporal_model = get_model("temporal",
                                encoder=encoder,
                                decoder=decoder,
                                input_size=get_config("width") * get_config("height"),
-                               output_size=get_config("width") * get_config("height"))
+                               output_size=get_config("width") * get_config("height")).to(get_config("device"))
     temporal_opt = create_opt(temporal_model.parameters(), get_config("learning_rate"), get_config("weight_decay"))
     train_temporal(model=temporal_model,
                    data_loader=temporal_dataloader,
                    loss_func=loss_func,
                    optimizer=temporal_opt,
                    num_epochs=get_config("train_epochs"),
-                   tensorboard_folder=f"../{get_config('tensorboard_folder')}",
-                   model_folder=f"../{get_config('temporal_model_save_folder')}")
+                   tensorboard_folder=tensorboard_folder,
+                   model_folder=model_folder)
 
-    if __name__ == '__main__':
-        main()
+
+if __name__ == '__main__':
+    main()

@@ -13,9 +13,11 @@ def get_spatio_dataloader(datapath: str,
     np.random.seed(10)
     data = h5py.File(datapath)['data'][:, channel]
     np.random.shuffle(data)
-    split = len(data) * pre_train_len
-    return {'train': DataLoader(dataset=TensorDataset(data[:split], data[:split]), shuffle=True, batch_size=batch_size),
-            'validate': DataLoader(dataset=TensorDataset(data[split:], data[split:]), shuffle=True,
+    vali_len = int(len(data) * pre_train_len)
+    data = torch.from_numpy(data).float().to(get_config("device")).unsqueeze(-3)
+    print(data.shape)
+    return {'train': DataLoader(dataset=TensorDataset(data[:-vali_len], data[:-vali_len]), shuffle=True, batch_size=batch_size),
+            'validate': DataLoader(dataset=TensorDataset(data[vali_len:], data[vali_len:]), shuffle=True,
                                    batch_size=batch_size)}
 
 

@@ -6,4 +6,4 @@ class RMSELoss(nn.Module):
         self.mse_loss = nn.MSELoss()
 
     def forward(self, truth, predict):
-        return self.mse_loss() ** 0.5
+        return self.mse_loss(truth, predict) ** 0.5

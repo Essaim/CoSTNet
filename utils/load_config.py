@@ -9,7 +9,6 @@ with open(absPath) as File:
 
 def get_config(name, defaultValue = None):
     try:
-        print(config)
         return config[name]
     except KeyError:
         print(f"invalid keyvalue{name}")

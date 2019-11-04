@@ -41,7 +41,6 @@ def train_spatio(model,
                 for x, y in tqdm_loader:
                     # x.to(get_config("device"))
                     # y.to(get_config("device"))
-
                     with torch.set_grad_enabled(phase == 'train'):
                         y_pred = model(x)
                         loss = loss_func(y_pred, y)
@@ -51,13 +50,13 @@ def train_spatio(model,
                             loss.backward()
                             optimizer.step()
 
-                    groud_truth.append(y.cpu().numpy())
-                    prediction.append(y_pred.cpu().numpy())
+                    groud_truth.append(y.cpu().detach().numpy())
+                    prediction.append(y_pred.cpu().detach().numpy())
 
                     running_loss[phase] += loss * y.size(0)
                     steps += y.size(0)
 
-                    tqdm_loader.set_description(f"{phase:8} epoch: {epoch:8} loss{running_loss[phase] / steps:3.6}")
+                    tqdm_loader.set_description(f"{phase:8} epoch: {epoch:3}  loss: {running_loss[phase] / steps:3.6} ")
                     torch.cuda.empty_cache()
 
                 if phase == 'validate' and running_loss[phase] / steps <= best_rmse:
