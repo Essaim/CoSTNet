@@ -7,7 +7,7 @@ from utils.data_contrainer import get_spatio_dataloader, get_temporal_dataloader
 from utils.load_config import get_config
 from model.CNN_AE import Model_Spatio_CNN
 from model.LSTM_Prediction import Model_Temporal_LSTM
-from train.train_main import train_spatio, train_temporal, train_model
+from train.train_main import train_model
 from utils.loss import RMSELoss
 from utils.normalization import preprocess_normalize
 
