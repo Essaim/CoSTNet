@@ -2,21 +2,29 @@ import numpy as np
 import h5py
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import torch
+import torch.nn as nn
 
+
+from utils.normalization import MinMaxNormal
 from utils.load_config import get_config
+from utils.util import tensor2numpy, numpy2tensor
 
 
 def get_spatio_dataloader(datapath: str,
+                          normal: MinMaxNormal,
                           batch_size: int,
                           channel: int,
                           pre_train_len: int):
     np.random.seed(10)
     data = h5py.File(datapath)['data'][:, channel]
+    # normal_minmax = MinMaxNormalization(data)
+    # data = normal_minmax.transform(data)
+    data = normal.transform(data)
     np.random.shuffle(data)
     vali_len = int(len(data) * pre_train_len)
     data = torch.from_numpy(data).float().to(get_config("device")).unsqueeze(-3)
-    print(data.shape)
-    return {'train': DataLoader(dataset=TensorDataset(data[:-vali_len], data[:-vali_len]), shuffle=True, batch_size=batch_size),
+    return {'train': DataLoader(dataset=TensorDataset(data[:-vali_len], data[:-vali_len]), shuffle=True,
+                                batch_size=batch_size),
             'validate': DataLoader(dataset=TensorDataset(data[vali_len:], data[vali_len:]), shuffle=True,
                                    batch_size=batch_size)}
 
@@ -31,29 +39,31 @@ class temporal_dataset(Dataset):
 
     def __getitem__(self, item: int):
         if self.key == 'train':
-            return self.x[:self.len["train_len"]], self.y[:self.len["train_len"]]
+            return self.x[item], self.y[item]
         elif self.key == 'validate':
-            return self.x[self.len["train_len"]: self.len["train_len"] + self.len["validate_len"]], \
-                   self.y[self.len["train_len"]: self.len["train_len"] + self.len["validate_len"]]
+            return self.x[self.len["train_len"] + item], self.y[self.len["train_len"] + item]
         elif self.key == 'test':
-            return self.x[-self.len["test_len"]:], self.y[-self.len["test_len"]:]
+            return self.x[-self.len["test_len"] + item], self.y[-self.len["test_len"] + item]
         else:
             raise NotImplementedError()
 
-
-def __len__(self):
-    return self.len[f"{self.key}_len"]
+    def __len__(self):
+        return self.len[f"{self.key}_len"]
 
 
 def get_temporal_dataloader(datapath: str,
+                            normal: MinMaxNormal,
                             batch_size: int,
+                            encoder: nn.Module,
                             channel: int,
                             depend_list: list):
-    data = h5py.File(datapath)['data'][:, channel]
-
+    data = np.expand_dims(h5py.File(datapath)['data'][:, channel], axis=-3)
+    data = normal.transform(data)
+    print(data.max(),data.min())
+    data_encode = tensor2numpy(encoder(numpy2tensor(data)))
     X_, Y_ = list(), list()
     for i in range(depend_list[0], data.shape[0]):
-        X_.append([data[i - j] for j in depend_list])
+        X_.append([data_encode[i - j] for j in depend_list])
         Y_.append(data[i])
 
     X_ = torch.from_numpy(np.asarray(X_)).float().to(get_config('device'))

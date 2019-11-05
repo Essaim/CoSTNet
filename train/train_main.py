@@ -13,6 +13,7 @@ from utils.load_config import get_config
 
 def train_spatio(model,
                  data_loader,
+                 normal,
                  loss_func,
                  optimizer,
                  num_epochs,
@@ -56,7 +57,9 @@ def train_spatio(model,
                     running_loss[phase] += loss * y.size(0)
                     steps += y.size(0)
 
-                    tqdm_loader.set_description(f"{phase:8} epoch: {epoch:3}  loss: {running_loss[phase] / steps:3.6} ")
+                    tqdm_loader.set_description(
+                        f"{phase:8} epoch: {epoch:3}  loss: {running_loss[phase] / steps:3.6},"
+                        f"true loss: {normal.rmse_transform(running_loss[phase] / steps):3.6}")
                     torch.cuda.empty_cache()
 
                 if phase == 'validate' and running_loss[phase] / steps <= best_rmse:
@@ -71,7 +74,8 @@ def train_spatio(model,
                                 phases}, epoch)
     finally:
         time_elapsed = time.clock() - since
-        print(f"cost {time_elapsed} seconds")
+        print(
+            f"cost time: {time_elapsed} seconds          best val loss: {best_rmse}     best epoch: {save_dict['epoch']}")
         save_model(f"{model_folder}/ae_model.pkl", **save_dict)
         model.load_state_dict(save_dict['model_state_dict'])
     return model
@@ -79,6 +83,7 @@ def train_spatio(model,
 
 def train_temporal(model,
                    data_loader,
+                   normal,
                    loss_func,
                    optimizer,
                    num_epochs,
@@ -97,7 +102,7 @@ def train_temporal(model,
     try:
         for epoch in range(num_epochs):
 
-            running_loss, running_metrics = {phase: 0.0 for phase in phases}, {phases: dict() for phase in phases}
+            running_loss, running_metrics = {phase: 0.0 for phase in phases}, {phase: dict() for phase in phases}
 
             for phase in phases:
                 if phase == 'train':
@@ -108,12 +113,12 @@ def train_temporal(model,
                 steps, ground_truth, prediction = 0, list(), list()
                 tqdm_loader = tqdm(data_loader[phase], phase)
                 for x, y in tqdm_loader:
+
                     x.to(get_config("device"))
                     y.to(get_config("device"))
 
                     with torch.set_grad_enabled(phase == 'train'):
                         y_pred = model(x)
-
                         loss = loss_func(y, y_pred)
 
                         if phase == "train":
@@ -126,7 +131,8 @@ def train_temporal(model,
                     running_loss[phase] += loss * y.size(0)
                     steps += y.size(0)
 
-                    tqdm_loader.set_description(f"{phase:8} epoch: {epoch:8} loss{running_loss[phase] / steps:3.6}")
+                    tqdm_loader.set_description(f"{phase:8} epoch: {epoch:8} loss{running_loss[phase] / steps:3.6},"
+                                                f"true loss{normal.rmse_transform(running_loss[phase] / steps):3.6}")
 
                     torch.cuda.empty_cache()
 
@@ -142,9 +148,8 @@ def train_temporal(model,
                                 phases}, epoch)
     finally:
         time_elapsed = time.clock() - since
-        print(f"cost {time_elapsed} seconds")
-
+        print(
+            f"cost time: {time_elapsed} seconds          best val loss: {best_rmse}     best epoch: {save_dict['epoch']}")
         save_model(f"{model_folder}/best_model.pkl", **save_dict)
-
         model.load_state_dict(save_dict['model_state_dict'])
     return model
