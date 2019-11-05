@@ -49,8 +49,7 @@ def main():
     spatio_data_path = f"../data/{get_config('spatio_data_path')}"
     temporal_data_path = f"../data/{get_config('temporal_data_path')}"
 
-    spaio_data_normal, temporal_data_normal, normal_st = preprocess_normalize(spatio_data_path, temporal_data_path,
-                                                                              0)
+    spaio_data_normal, temporal_data_normal, normal_st = preprocess_normalize(spatio_data_path, temporal_data_path,0)
 
     loss_func = create_loss(get_config("loss_type"))
     spatio_dataloader = get_spatio_dataloader(datapath=spatio_data_path, normal=normal_st,
@@ -69,10 +68,12 @@ def main():
                                 tensorboard_folder=tensorboard_folder,
                                 model_folder=model_folder)
 
-    # spatio_model.load_state_dict(torch.load(f"{model_folder}/ae_model.pkl")['model_state_dict'])
-
+    # torch.cuda.empty_cache()
+    spatio_model.load_state_dict(torch.load(f"{model_folder}/ae_model.pkl")['model_state_dict'])
     encoder, decoder = spatio_model.encoder, spatio_model.decoder
 
+
+    # loss_func = create_loss(get_config("loss_type"))
     temporal_dataloader = get_temporal_dataloader(datapath=temporal_data_path, normal=normal_st,
                                                   batch_size=get_config("temporal_batch_size"), encoder=encoder,
                                                   channel=0,

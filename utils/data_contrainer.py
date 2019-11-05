@@ -25,7 +25,7 @@ def get_spatio_dataloader(datapath: str,
     data = torch.from_numpy(data).float().to(get_config("device")).unsqueeze(-3)
     return {'train': DataLoader(dataset=TensorDataset(data[:-vali_len], data[:-vali_len]), shuffle=True,
                                 batch_size=batch_size),
-            'validate': DataLoader(dataset=TensorDataset(data[vali_len:], data[vali_len:]), shuffle=True,
+            'validate': DataLoader(dataset=TensorDataset(data[-vali_len:], data[-vali_len:]), shuffle=True,
                                    batch_size=batch_size)}
 
 
@@ -61,6 +61,9 @@ def get_temporal_dataloader(datapath: str,
     data = normal.transform(data)
     print(data.max(),data.min())
     data_encode = tensor2numpy(encoder(numpy2tensor(data)))
+    print(encoder)
+    print(data.shape)
+
     X_, Y_ = list(), list()
     for i in range(depend_list[0], data.shape[0]):
         X_.append([data_encode[i - j] for j in depend_list])

@@ -14,6 +14,7 @@ class MinMaxNormal(object):
         print("min:", self._min, "max:", self._max)
 
     def __init__(self, X, Y):
+        print("Xmin:",X.min(),"Xmax:",X.max(),"Ymin:",Y.min(),"Ymax:",Y.max())
         self._min = (X.min() if X.min() < Y.min() else Y.min())
         self._max = (X.max() if X.max() > Y.max() else Y.max())
         print("min:", self._min, "max:", self._max)

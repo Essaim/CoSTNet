@@ -64,8 +64,7 @@ def train_spatio(model,
 
                 if phase == 'validate' and running_loss[phase] / steps <= best_rmse:
                     best_rmse = running_loss[phase] / steps
-                    save_dict.update(model_state_dict=copy.deepcopy(model.state_dict()),
-                                     epoch=epoch)
+                    save_dict.update(model_state_dict=copy.deepcopy(model.state_dict()), epoch=epoch)
 
             scheduler.step(running_loss['train'])
 
@@ -114,8 +113,8 @@ def train_temporal(model,
                 tqdm_loader = tqdm(data_loader[phase], phase)
                 for x, y in tqdm_loader:
 
-                    x.to(get_config("device"))
-                    y.to(get_config("device"))
+                    # x.to(get_config("device"))
+                    # y.to(get_config("device"))
 
                     with torch.set_grad_enabled(phase == 'train'):
                         y_pred = model(x)
