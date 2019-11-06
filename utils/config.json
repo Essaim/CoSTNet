@@ -5,7 +5,7 @@
   "lstm_width" : 14,
   "lstm_height" : 14,
 
-  "device" : "cuda:3",
+  "device" : "cuda:1",
   "filters" : [16,14],
   "bike_spatio_data_name" : "NYCBike_20x20_8slice.h5",
   "bike_temporal_data_name" : "NYCBike_20x20_1slice.h5",
@@ -31,6 +31,6 @@
   "opt_type" : "Adam",
   "learning_rate" : 5e-4,
 
-  "channel_num" : 1,
+  "channel_num" : 0,
   "channel_total" : 4
 }
