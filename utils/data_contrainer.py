@@ -57,17 +57,21 @@ def get_temporal_dataloader(datapath: str,
                             encoder: nn.Module,
                             channel: int,
                             depend_list: list):
-    data = np.expand_dims(h5py.File(datapath)['data'][:, channel], axis=-3)
-    data = normal.transform(data)
-    print(data.max(),data.min())
-    data_encode = tensor2numpy(encoder(numpy2tensor(data)))
-    print(encoder)
-    print(data.shape)
+    data_ground, data_encode = list(), list()
+    for i in range(len(datapath)):
+        data_ = np.expand_dims(h5py.File(datapath[i])['data'][:, channel], axis=-3)
+        data_ = normal[i].transform(data_)
+        data_encode_ = tensor2numpy(encoder[i](numpy2tensor(data_)))
 
+        data_ground.append(data_)
+        data_encode.append(data_encode_)
+
+
+    data_encode = np.concatenate([each for each in data_encode], axis=1)
     X_, Y_ = list(), list()
-    for i in range(depend_list[0], data.shape[0]):
+    for i in range(depend_list[0], data_encode_.shape[0]):
         X_.append([data_encode[i - j] for j in depend_list])
-        Y_.append(data[i])
+        Y_.append(data_ground[channel][i])
 
     X_ = torch.from_numpy(np.asarray(X_)).float().to(get_config('device'))
     Y_ = torch.from_numpy(np.asarray(Y_)).float().to(get_config('device'))

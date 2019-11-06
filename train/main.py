@@ -12,11 +12,11 @@ from utils.loss import RMSELoss
 from utils.normalization import preprocess_normalize
 
 
-def get_model(model_type, encoder=None, decoder=None, input_size=None, output_size=None):
+def get_model(model_type, encoder=None, decoder=None, input_size=None, output_size=None, channel_num=None):
     if model_type == 'spatio':
         return Model_Spatio_CNN(get_config("filters"))
     elif model_type == 'temporal':
-        return Model_Temporal_LSTM(encoder, decoder, input_size, output_size)
+        return Model_Temporal_LSTM(encoder, decoder, input_size, output_size, channel_num)
     else:
         raise ValueError("Unknown model type.")
 
@@ -37,23 +37,15 @@ def create_opt(par, lr, opt_type):
         raise NotImplementedError()
 
 
-def main():
-    model_folder = f"../save/{get_config('model_name')}"
-    tensorboard_folder = f"../run/{get_config('model_name')}"
+def get_spatio_model(spatio_data_path, temporal_data_path, channel, tensorboard_folder, model_folder_name):
 
-    shutil.rmtree(model_folder, ignore_errors=True)
-    os.makedirs(model_folder, exist_ok=True)
-    shutil.rmtree(tensorboard_folder, ignore_errors=True)
-    os.makedirs(tensorboard_folder, exist_ok=True)
-
-    spatio_data_path = f"../data/{get_config('spatio_data_path')}"
-    temporal_data_path = f"../data/{get_config('temporal_data_path')}"
-
-    spaio_data_normal, temporal_data_normal, normal_st = preprocess_normalize(spatio_data_path, temporal_data_path, 0)
-
+    spaio_data_normal, temporal_data_normal, normal_st = preprocess_normalize(spatio_data_path, temporal_data_path,
+                                                                              channel)
     loss_func = create_loss(get_config("loss_type"))
-    spatio_dataloader = get_spatio_dataloader(datapath=spatio_data_path, normal=normal_st,
-                                              batch_size=get_config("spatio_batch_size"), channel=0,
+    spatio_dataloader = get_spatio_dataloader(datapath=spatio_data_path,
+                                              normal=normal_st,
+                                              batch_size=get_config("spatio_batch_size"),
+                                              channel=channel,
                                               pre_train_len=get_config("spatio_train_len"))
     spatio_model = get_model("spatio").to(get_config("device"))
     spatio_opt = create_opt(spatio_model.parameters(), get_config("learning_rate"), get_config("opt_type"))
@@ -66,30 +58,101 @@ def main():
                                optimizer=spatio_opt,
                                num_epochs=get_config("spatio_epochs"),
                                tensorboard_folder=tensorboard_folder,
-                               model_folder_name=f"{model_folder}/ae_model.pkl")
+                               model_folder_name=model_folder_name)
+    # spatio_model.load_state_dict(torch.load(f"{model_folder_name}")['model_state_dict'])
+
+    return {'model': spatio_model, 'normal': normal_st}
 
 
-    # spatio_model.load_state_dict(torch.load(f"{model_folder}/ae_model.pkl")['model_state_dict'])
+def get_ednd(bike_pick, bike_drop, taxi_pick, taxi_drop, bike_temporal_data_path, taxi_temporal_data_path):
+    container = [bike_pick, bike_drop, taxi_pick, taxi_drop]
 
-    encoder, decoder = spatio_model.encoder, spatio_model.decoder
+    encoder = [each['model'].encoder for each in container]
+    decoder = [each['model'].decoder for each in container]
+    normal_st = [each['normal'] for each in container]
+    temporal_data_path = [bike_temporal_data_path, bike_temporal_data_path, taxi_temporal_data_path,
+                          taxi_temporal_data_path]
+
+    return encoder, decoder, normal_st, temporal_data_path
+
+
+
+
+
+
+
+
+
+
+
+
+
+def main():
+    model_folder = f"../save/{get_config('model_name')}"
+    tensorboard_folder = f"../run/{get_config('model_name')}"
+
+    shutil.rmtree(model_folder, ignore_errors=True)
+    os.makedirs(model_folder, exist_ok=True)
+    shutil.rmtree(tensorboard_folder, ignore_errors=True)
+    os.makedirs(tensorboard_folder, exist_ok=True)
+
+    bike_spatio_data_path = f"../data/{get_config('bike_spatio_data_name')}"
+    bike_temporal_data_path = f"../data/{get_config('bike_temporal_data_name')}"
+    taxi_spatio_data_path = f"../data/{get_config('taxi_spatio_data_name')}"
+    taxi_temporal_data_path = f"../data/{get_config('taxi_temporal_data_name')}"
+
+    bike_pick = get_spatio_model(spatio_data_path=bike_spatio_data_path,
+                                 temporal_data_path=bike_temporal_data_path,
+                                 channel=0,
+                                 tensorboard_folder=tensorboard_folder,
+                                 model_folder_name=f"{model_folder}/bike_pick_ae_model.pkl")
+    bike_drop = get_spatio_model(spatio_data_path=bike_spatio_data_path,
+                                 temporal_data_path=bike_temporal_data_path,
+                                 channel=1,
+                                 tensorboard_folder=tensorboard_folder,
+                                 model_folder_name=f"{model_folder}/bike_drop_ae_model.pkl")
+    taxi_pick = get_spatio_model(spatio_data_path=taxi_spatio_data_path,
+                                 temporal_data_path=taxi_temporal_data_path,
+                                 channel=0,
+                                 tensorboard_folder=tensorboard_folder,
+                                 model_folder_name=f"{model_folder}/taxi_pick_ae_model.pkl")
+    taxi_drop = get_spatio_model(spatio_data_path=taxi_spatio_data_path,
+                                 temporal_data_path=taxi_temporal_data_path,
+                                 channel=1,
+                                 tensorboard_folder=tensorboard_folder,
+                                 model_folder_name=f"{model_folder}/taxi_drop_ae_model.pkl")
+
+
+
+
+
+
+    encoder, decoder, normal_st, temporal_data_path = get_ednd(bike_pick=bike_pick,
+                                                               bike_drop=bike_drop,
+                                                               taxi_pick=taxi_pick,
+                                                               taxi_drop=taxi_drop,
+                                                               bike_temporal_data_path=bike_temporal_data_path,
+                                                               taxi_temporal_data_path=taxi_temporal_data_path)
+
+    loss_func = create_loss(get_config("loss_type"))
 
     temporal_dataloader = get_temporal_dataloader(datapath=temporal_data_path,
                                                   normal=normal_st,
                                                   batch_size=get_config("temporal_batch_size"),
                                                   encoder=encoder,
-                                                  channel=0,
+                                                  channel=get_config("channel_num"),
                                                   depend_list=get_config("temporal_depend_list"))
     temporal_model = get_model("temporal",
                                encoder,
-                               decoder,
+                               decoder[get_config("channel_num")],
                                get_config("lstm_width"),
-                               get_config("lstm_height")).to(get_config("device"))
+                               get_config("lstm_height"),
+                               get_config("channel_total")).to(get_config("device"))
     temporal_opt = create_opt(temporal_model.parameters(), get_config("learning_rate"), get_config("opt_type"))
-    # temporal_opt= optim.Adam(temporal_model.parameters(), get_config("learning_rate"), weight_decay=get_config("weight_decay"))
     train_model(model=temporal_model,
                 data_loader=temporal_dataloader,
                 phases=['train', 'validate', 'test'],
-                normal=normal_st,
+                normal=normal_st[get_config("channel_num")],
                 loss_func=loss_func,
                 optimizer=temporal_opt,
                 num_epochs=get_config("temporal_epochs"),

@@ -4,7 +4,7 @@ import numpy
 
 
 class Model_Temporal_LSTM(nn.Module):
-    def __init__(self, encoder, decoder, lstm_width, lstm_height):
+    def __init__(self, encoder, decoder, lstm_width, lstm_height, channel_num):
         super(Model_Temporal_LSTM, self).__init__()
 
         self.decoder = decoder
@@ -13,7 +13,7 @@ class Model_Temporal_LSTM(nn.Module):
 
         self.width = lstm_width
         self.height = lstm_height
-        self.lstm = nn.LSTM(input_size=lstm_width * lstm_height,
+        self.lstm = nn.LSTM(input_size=lstm_width * lstm_height * channel_num,
                             hidden_size=lstm_width * lstm_height,
                             num_layers=1,
                             batch_first=True)

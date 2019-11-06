@@ -7,14 +7,16 @@
 
   "device" : "cuda:3",
   "filters" : [16,14],
-  "spatio_data_path" : "NYCBike_20x20_8slice.h5",
-  "temporal_data_path" : "NYCBike_20x20_1slice.h5",
+  "bike_spatio_data_name" : "NYCBike_20x20_8slice.h5",
+  "bike_temporal_data_name" : "NYCBike_20x20_1slice.h5",
+  "taxi_spatio_data_name" : "NYCTaxi_20x20_8slice.h5",
+  "taxi_temporal_data_name" : "NYCTaxi_20x20_1slice.h5",
   
   "spatio_batch_size" : 16,
   "temporal_batch_size" : 32,
   
   "spatio_epochs" : 20,
-  "temporal_epochs" : 100,
+  "temporal_epochs" : 50,
   
   "model_name" : "20X20_1614CNN_LSTM",
   
@@ -27,5 +29,8 @@
   "temporal_test_len" : 672,
 
   "opt_type" : "Adam",
-  "learning_rate" : 5e-4
+  "learning_rate" : 5e-4,
+
+  "channel_num" : 1,
+  "channel_total" : 4
 }

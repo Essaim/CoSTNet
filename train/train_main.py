@@ -11,8 +11,6 @@ from utils.util import save_model
 from utils.load_config import get_config
 
 
-
-
 def train_model(model,
                 data_loader,
                 phases,
@@ -22,11 +20,11 @@ def train_model(model,
                 num_epochs,
                 tensorboard_folder: str,
                 model_folder_name):
-
     since = time.clock()
 
     writer = SummaryWriter(tensorboard_folder)
-    save_dict, best_rmse = {'model_state_dict': copy.deepcopy(model.state_dict()), 'epoch': 0}, 999999
+    save_dict, best_rmse, best_test_rmse = {'model_state_dict': copy.deepcopy(model.state_dict()),
+                                            'epoch': 0}, 999999, 999999
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=.5, patience=2, threshold=1e-3, min_lr=1e-6)
 
     try:
@@ -68,6 +66,8 @@ def train_model(model,
                 if phase == 'validate' and running_loss[phase] / steps <= best_rmse:
                     best_rmse = running_loss[phase] / steps
                     save_dict.update(model_state_dict=copy.deepcopy(model.state_dict()), epoch=epoch)
+                if phase == 'test' and save_dict['epoch'] == epoch:
+                    best_test_rmse = running_loss[phase] / steps
 
             scheduler.step(running_loss['train'])
 
@@ -76,8 +76,9 @@ def train_model(model,
                                 phases}, epoch)
     finally:
         time_elapsed = time.clock() - since
-        print(f"cost time: {time_elapsed} seconds   best val loss: {best_rmse}     best epoch: {save_dict['epoch']}")
+        print(f"cost time: {time_elapsed:.2} seconds   best val loss: {normal.rmse_transform(best_rmse)}   "
+              f"best test loss:{normal.rmse_transform(best_test_rmse)}  best epoch: {save_dict['epoch']}")
         save_model(f"{model_folder_name}", **save_dict)
-        model.load_state_dict(torch.load(f"{model_folder_name}")['model_state_dict'])
+        # model.load_state_dict(torch.load(f"{model_folder_name}")['model_state_dict'])
         model.load_state_dict(save_dict['model_state_dict'])
     return model
