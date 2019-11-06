@@ -46,7 +46,7 @@ def get_spatio_model(spatio_data_path, temporal_data_path, channel, tensorboard_
                                               normal=normal_st,
                                               batch_size=get_config("spatio_batch_size"),
                                               channel=channel,
-                                              pre_train_len=get_config("spatio_train_len"))
+                                              pre_train_len=get_config("spatio_validate_len"))
     spatio_model = get_model("spatio").to(get_config("device"))
     spatio_opt = create_opt(spatio_model.parameters(), get_config("learning_rate"), get_config("opt_type"))
 
@@ -59,7 +59,7 @@ def get_spatio_model(spatio_data_path, temporal_data_path, channel, tensorboard_
                                num_epochs=get_config("spatio_epochs"),
                                tensorboard_folder=tensorboard_folder,
                                model_folder_name=model_folder_name)
-    # spatio_model.load_state_dict(torch.load(f"{model_folder_name}")['model_state_dict'])
+    spatio_model.load_state_dict(torch.load(f"{model_folder_name}")['model_state_dict'])
 
     return {'model': spatio_model, 'normal': normal_st}
 

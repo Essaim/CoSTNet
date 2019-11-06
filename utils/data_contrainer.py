@@ -17,8 +17,6 @@ def get_spatio_dataloader(datapath: str,
                           pre_train_len: int):
     np.random.seed(10)
     data = h5py.File(datapath)['data'][:, channel]
-    # normal_minmax = MinMaxNormalization(data)
-    # data = normal_minmax.transform(data)
     data = normal.transform(data)
     np.random.shuffle(data)
     vali_len = int(len(data) * pre_train_len)
@@ -34,8 +32,8 @@ class temporal_dataset(Dataset):
         self.x = x
         self.y = y
         self.key = key
-        self.len = {"train_len": train_len - int(train_len * validate_len),
-                    "validate_len": int(train_len * validate_len), "test_len": test_len}
+        self.len = {"train_len": train_len - validate_len,
+                    "validate_len": validate_len, "test_len": test_len}
 
     def __getitem__(self, item: int):
         if self.key == 'train':
@@ -59,7 +57,7 @@ def get_temporal_dataloader(datapath: str,
                             depend_list: list):
     data_ground, data_encode = list(), list()
     for i in range(len(datapath)):
-        data_ = np.expand_dims(h5py.File(datapath[i])['data'][:, channel], axis=-3)
+        data_ = np.expand_dims(h5py.File(datapath[i])['data'][:, channel%2], axis=-3)
         data_ = normal[i].transform(data_)
         data_encode_ = tensor2numpy(encoder[i](numpy2tensor(data_)))
 

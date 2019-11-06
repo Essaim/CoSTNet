@@ -23,8 +23,8 @@
   "temporal_depend_list" : [8,7,6,5,4,3,2,1],
   "loss_type" : "rmse_loss",
 
-  "spatio_train_len" : 0.1,
-  "temporal_validate_len": 0.1,
+  "spatio_validate_len" : 0.1,
+  "temporal_validate_len": 672,
   "temporal_train_len": 3696,
   "temporal_test_len" : 672,
 
