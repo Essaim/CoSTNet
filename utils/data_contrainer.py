@@ -57,7 +57,7 @@ def get_temporal_dataloader(datapath: str,
                             depend_list: list):
     data_ground, data_encode = list(), list()
     for i in range(len(datapath)):
-        data_ = np.expand_dims(h5py.File(datapath[i])['data'][:, channel%2], axis=-3)
+        data_ = np.expand_dims(h5py.File(datapath[i])['data'][:, i%2], axis=-3)
         data_ = normal[i].transform(data_)
         data_encode_ = tensor2numpy(encoder[i](numpy2tensor(data_)))
 
