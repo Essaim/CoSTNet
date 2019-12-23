@@ -2,12 +2,14 @@ import os
 import shutil
 from torch import optim
 import torch
+import torch.nn as nn
+import h5py
 
 from utils.data_contrainer import get_spatio_dataloader, get_temporal_dataloader
 from utils.load_config import get_config
 from model.CNN_AE import Model_Spatio_CNN
 from model.LSTM_Prediction import Model_Temporal_LSTM
-from train.train_main import train_model
+from train.train_main import train_model, train_temporal_model
 from utils.loss import RMSELoss
 from utils.normalization import preprocess_normalize
 
@@ -38,7 +40,6 @@ def create_opt(par, lr, opt_type):
 
 
 def get_spatio_model(spatio_data_path, temporal_data_path, channel, tensorboard_folder, model_folder_name):
-
     spaio_data_normal, temporal_data_normal, normal_st = preprocess_normalize(spatio_data_path, temporal_data_path,
                                                                               channel)
     loss_func = create_loss(get_config("loss_type"))
@@ -64,7 +65,8 @@ def get_spatio_model(spatio_data_path, temporal_data_path, channel, tensorboard_
     return {'model': spatio_model, 'normal': normal_st}
 
 
-def get_ednd(bike_pick, bike_drop, taxi_pick, taxi_drop, bike_temporal_data_path, taxi_temporal_data_path):
+def get_ednd(bike_pick, bike_drop, taxi_pick, taxi_drop, bike_temporal_data_path, taxi_temporal_data_path,
+             channel_list):
     container = [bike_pick, bike_drop, taxi_pick, taxi_drop]
 
     encoder = [each['model'].encoder for each in container]
@@ -72,19 +74,12 @@ def get_ednd(bike_pick, bike_drop, taxi_pick, taxi_drop, bike_temporal_data_path
     normal_st = [each['normal'] for each in container]
     temporal_data_path = [bike_temporal_data_path, bike_temporal_data_path, taxi_temporal_data_path,
                           taxi_temporal_data_path]
+    temporal_data = [h5py.File(temporal_data_path[i])['data'][:, i % 2] for i in range(4)]
 
-    return encoder, decoder, normal_st, temporal_data_path
-
-
-
-
-
-
-
-
-
-
-
+    return nn.ModuleList([encoder[i] for i in channel_list]), \
+           nn.ModuleList([decoder[i] for i in channel_list]), \
+           [normal_st[i] for i in channel_list], \
+           [temporal_data[i] for i in channel_list]
 
 
 def main():
@@ -122,42 +117,39 @@ def main():
                                  tensorboard_folder=tensorboard_folder,
                                  model_folder_name=f"{model_folder}/taxi_drop_ae_model.pkl")
 
-
-
-
-
-
-    encoder, decoder, normal_st, temporal_data_path = get_ednd(bike_pick=bike_pick,
-                                                               bike_drop=bike_drop,
-                                                               taxi_pick=taxi_pick,
-                                                               taxi_drop=taxi_drop,
-                                                               bike_temporal_data_path=bike_temporal_data_path,
-                                                               taxi_temporal_data_path=taxi_temporal_data_path)
+    encoder, decoder, normal_st, temporal_data = get_ednd(bike_pick=bike_pick,
+                                                          bike_drop=bike_drop,
+                                                          taxi_pick=taxi_pick,
+                                                          taxi_drop=taxi_drop,
+                                                          bike_temporal_data_path=bike_temporal_data_path,
+                                                          taxi_temporal_data_path=taxi_temporal_data_path,
+                                                          channel_list=get_config("channel_list"))
 
     loss_func = create_loss(get_config("loss_type"))
 
-    temporal_dataloader = get_temporal_dataloader(datapath=temporal_data_path,
+    temporal_dataloader = get_temporal_dataloader(data_input=temporal_data,
                                                   normal=normal_st,
                                                   batch_size=get_config("temporal_batch_size"),
                                                   encoder=encoder,
-                                                  channel=get_config("channel_num"),
                                                   depend_list=get_config("temporal_depend_list"))
     temporal_model = get_model("temporal",
                                encoder,
-                               decoder[get_config("channel_num")],
+                               decoder,
                                get_config("lstm_width"),
                                get_config("lstm_height"),
-                               get_config("channel_total")).to(get_config("device"))
+                               len(get_config("channel_list"))).to(get_config("device"))
     temporal_opt = create_opt(temporal_model.parameters(), get_config("learning_rate"), get_config("opt_type"))
-    train_model(model=temporal_model,
-                data_loader=temporal_dataloader,
-                phases=['train', 'validate', 'test'],
-                normal=normal_st[get_config("channel_num")],
-                loss_func=loss_func,
-                optimizer=temporal_opt,
-                num_epochs=get_config("temporal_epochs"),
-                tensorboard_folder=tensorboard_folder,
-                model_folder_name=f"{model_folder}/best_model.pkl")
+    train_temporal_model(model=temporal_model,
+                         data_loader=temporal_dataloader,
+                         phases=['train', 'validate', 'test'],
+                         normal=normal_st,
+                         channel_list=get_config("channel_list"),
+                         channel = get_config("channel"),
+                         loss_func=loss_func,
+                         optimizer=temporal_opt,
+                         num_epochs=get_config("temporal_epochs"),
+                         tensorboard_folder=tensorboard_folder,
+                         model_folder_name=f"{model_folder}/best_model")
 
 
 if __name__ == '__main__':

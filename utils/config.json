@@ -16,9 +16,9 @@
   "temporal_batch_size" : 32,
   
   "spatio_epochs" : 20,
-  "temporal_epochs" : 50,
+  "temporal_epochs" : 100,
   
-  "model_name" : "20X20_1614CNN_LSTM",
+  "model_name" : "aeLSTM",
   
   "temporal_depend_list" : [8,7,6,5,4,3,2,1],
   "loss_type" : "rmse_loss",
@@ -32,5 +32,7 @@
   "learning_rate" : 5e-4,
 
   "channel_num" : 0,
-  "channel_total" : 4
+  "channel_total" : 4,
+  "channel" : 0,
+  "channel_list": [0,1,2,3]
 }

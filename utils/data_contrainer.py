@@ -49,15 +49,14 @@ class temporal_dataset(Dataset):
         return self.len[f"{self.key}_len"]
 
 
-def get_temporal_dataloader(datapath: str,
-                            normal: MinMaxNormal,
+def get_temporal_dataloader(data_input: list,
+                            normal: list,
                             batch_size: int,
                             encoder: nn.Module,
-                            channel: int,
                             depend_list: list):
-    data_ground, data_encode = list(), list()
-    for i in range(len(datapath)):
-        data_ = np.expand_dims(h5py.File(datapath[i])['data'][:, i%2], axis=-3)
+    data_ground, data_encode, channel_num = list(), list(), len(data_input)
+    for i in range(channel_num):
+        data_ = np.expand_dims(data_input[i], axis=-3)
         data_ = normal[i].transform(data_)
         data_encode_ = tensor2numpy(encoder[i](numpy2tensor(data_)))
 
@@ -66,14 +65,14 @@ def get_temporal_dataloader(datapath: str,
 
 
     data_encode = np.concatenate([each for each in data_encode], axis=1)
+    data_ground = np.concatenate([each for each in data_ground], axis=1)
     X_, Y_ = list(), list()
     for i in range(depend_list[0], data_encode_.shape[0]):
         X_.append([data_encode[i - j] for j in depend_list])
-        Y_.append(data_ground[channel][i])
+        Y_.append(data_ground[i])
 
     X_ = torch.from_numpy(np.asarray(X_)).float().to(get_config('device'))
     Y_ = torch.from_numpy(np.asarray(Y_)).float().to(get_config('device'))
-
     dls = dict()
     for key in ['train', 'validate', 'test']:
         dataset = temporal_dataset(X_, Y_, key, get_config("temporal_train_len"), get_config("temporal_validate_len"),

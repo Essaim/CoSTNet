@@ -2,6 +2,13 @@
 <project version="4">
   <component name="PublishConfigData" showNewOnTargetInSync="false">
     <serverData>
+      <paths name="yejunchen@10.2.9.100:22">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="yejunchen@219.224.165.132:22">
         <serverdata>
           <mappings>
