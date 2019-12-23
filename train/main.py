@@ -4,7 +4,6 @@ from torch import optim
 import torch
 import torch.nn as nn
 import h5py
-
 from utils.data_contrainer import get_spatio_dataloader, get_temporal_dataloader
 from utils.load_config import get_config
 from model.CNN_AE import Model_Spatio_CNN
