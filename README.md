@@ -3,6 +3,7 @@ The implementation of Paper "Co-Prediction of Multiple Transportation Demands Ba
 
 If you find the code is useful, please cite our paper
 
+```
 @inproceedings{ye2019co,  
   title    ={Co-Prediction of Multiple Transportation Demands Based on Deep Spatio-Temporal Neural Network},  
   author   ={Ye, Junchen and Sun, Leilei and Du, Bowen and Fu, Yanjie and Tong, Xinran and Xiong, Hui},  
@@ -10,3 +11,4 @@ If you find the code is useful, please cite our paper
   pages    ={305--313},  
   year     ={2019}  
 }
+```
