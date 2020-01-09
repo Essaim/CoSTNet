@@ -15,7 +15,7 @@
   "spatio_batch_size" : 16,
   "temporal_batch_size" : 32,
   
-  "spatio_epochs" : 20,
+  "spatio_epochs" : 10,
   "temporal_epochs" : 100,
   
   "model_name" : "aeLSTM",

@@ -166,8 +166,6 @@ def train_temporal_model(model: nn.Module,
         time_elapsed = time.clock() - since
         print(f"cost time: {time_elapsed:.2} seconds")
         for i in range(channel_num):
-            print(f"channel{i} best val loss: {normal[i].rmse_transform(best_rmse[i])}   "
-                  f"best test loss:{normal[i].rmse_transform(best_test_rmse[i])}  best epoch: {save_dict[i]['epoch']}")
             save_model(f"{model_folder_name}_{channel_list[i]}.pkl", **save_dict[i])
         # model.load_state_dict(torch.load(f"{model_folder_name}")['model_state_dict'])
         # model.load_state_dict(save_dict['model_state_dict'])
